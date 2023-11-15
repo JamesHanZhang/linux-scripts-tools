@@ -99,13 +99,16 @@ function installAnaconda() {
   echo -e "安装开始..." >> ${SYS_LOG_FILE}
 
   # 安装anaconda
+  # 注意, 如果安装的时候prefix不是为/home/用户名/anaconda3，则安装路径错误，需手动书写
   chmod 755 ${installPackage}
-  sudo bash ${installPackage} -b -u -p $HOME/anaconda3
+  bash ${installPackage} -b -u -p $HOME/anaconda3
   checkSuccess "离线进行Anaconda安装"
-  # 如果发现conda找不到指令, 则nano ~/.bashrc在末尾，加上PATH="$HOME/anaconda3/bin:$PATH"
+  # 如果发现conda找不到指令, 则先测试命令 export PATH="$HOME/anaconda3/bin:$PATH", 如退出后仍可以执行，手动执行后续步骤即可
+  # 再执行命令: nano ~/.bashrc在末尾，加上PATH="$HOME/anaconda3/bin:$PATH"
   # echo 'export PATH="'$HOME'/anaconda3/bin:'$PATH'"' >> ~/.bashrc
   # 可以通过 nano ~/.bashrc 查看
-  
+  chmod 777 $HOME/anaconda3
+
   source ~/.bashrc  # 刷新bash配置
   checkSuccess "刷新bash配置"
   conda init      # 初始化conda配置
@@ -123,6 +126,13 @@ function installAnaconda() {
   echo -e "Anaconda安装完成，现在您可以退出界面"
 
   sudo rm -f ${SYS_LOG_FILE}
+
+  # 如果使用的是代理，可能在pip install的时候出现如下错误
+  # ValueError: Unable to determine SOCKS version from socks://127.0.0.1:1080
+  # 输入如下两行命令，重置代理，即可正常执行
+  # unset all_proxy
+  # unset ALL_PROXY
+  # 另外，打包Pyinstaller的时候，需要确定binutils在linux环境存在, 如不存在，需执行sudo apt install binutils
 }
 
 function checkAInstallAnaconda() {
