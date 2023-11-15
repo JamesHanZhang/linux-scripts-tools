@@ -137,7 +137,7 @@ set long 100000000;
 set longc 25500000;
 set feedback off;
 set wrap off;
-set trimout off;
+set trimout on;
 set echo off;
 set trimspool on;
 set term off;

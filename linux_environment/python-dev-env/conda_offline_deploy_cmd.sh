@@ -12,7 +12,7 @@
 # 完成 日期: 2023/10/26
 # 调用脚本方法：
 #        chmod 755 脚本名.sh
-#        ./脚本名.sh
+#        sudo bash 脚本名.sh
 #*********************************************************************************
 ################## 常量 ##################
 # 程序名
@@ -77,9 +77,9 @@ fi
 
 function remindUsage() {
   echo -e "脚本使用方法: 在脚本所在目录下,执行该脚本
-  示例: bash conda_deploy_cmd.sh -i
+  示例: sudo bash conda_deploy_cmd.sh -i
   说明:
-       bash conda_deploy_cmd.sh -i: 安装Anaconda;
+       sudo bash conda_deploy_cmd.sh -i: 安装Anaconda;
        bash conda_deploy_cmd.sh -c: 确认Anaconda安装情况;
        bash conda_deploy_cmd.sh -r: 卸载Anaconda(针对通过该脚本安装或包含anaconda-clean模块);
        bash conda_deploy_cmd.sh -d: 卸载Anaconda(通用, 需有${CLEAN_PACKAGE}在同一目录下);
@@ -99,9 +99,15 @@ function installAnaconda() {
   echo -e "安装开始..." >> ${SYS_LOG_FILE}
 
   # 安装anaconda
+  # 注意, 如果安装的时候prefix不是为/home/用户名/anaconda3，则安装路径错误，需手动书写
   chmod 755 ${installPackage}
   bash ${installPackage} -b -u -p $HOME/anaconda3
   checkSuccess "离线进行Anaconda安装"
+  # 如果发现conda找不到指令, 则先测试命令 export PATH="$HOME/anaconda3/bin:$PATH", 如退出后仍可以执行，手动执行后续步骤即可
+  # 再执行命令: nano ~/.bashrc在末尾，加上PATH="$HOME/anaconda3/bin:$PATH"
+  # echo 'export PATH="'$HOME'/anaconda3/bin:'$PATH'"' >> ~/.bashrc
+  # 可以通过 nano ~/.bashrc 查看
+  chmod 777 $HOME/anaconda3
 
   source ~/.bashrc  # 刷新bash配置
   checkSuccess "刷新bash配置"
@@ -119,7 +125,14 @@ function installAnaconda() {
   checkSuccess "离线安装卸载程序(为未来卸载作准备)"
   echo -e "Anaconda安装完成，现在您可以退出界面"
 
-  rm -f ${SYS_LOG_FILE}
+  sudo rm -f ${SYS_LOG_FILE}
+
+  # 如果使用的是代理，可能在pip install的时候出现如下错误
+  # ValueError: Unable to determine SOCKS version from socks://127.0.0.1:1080
+  # 输入如下两行命令，重置代理，即可正常执行
+  # unset all_proxy
+  # unset ALL_PROXY
+  # 另外，打包Pyinstaller的时候，需要确定binutils在linux环境存在, 如不存在，需执行sudo apt install binutils
 }
 
 function checkAInstallAnaconda() {
@@ -152,11 +165,11 @@ function uninstallAnaconda() {
   echo -e "卸载开始..." >> ${SYS_LOG_FILE}
   anaconda-clean --yes
   checkSuccess "审核所有待清除的文件"
-  rm -rf $HOME/anaconda3
+  sudo rm -rf $HOME/anaconda3
   checkSuccess "删除anaconda文件包"
-  rm -rf ~/anaconda3
+  sudo rm -rf ~/anaconda3
   checkSuccess "删除anaconda基本配置1"
-  rm -rf ~/opt/anaconda3
+  sudo rm -rf ~/opt/anaconda3
   checkSuccess "删除anaconda基本配置2"
   getCostTime
   echo -e "Anaconda卸载完成，现在您可以退出界面"
