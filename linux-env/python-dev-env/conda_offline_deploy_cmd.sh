@@ -58,19 +58,22 @@ function getNow() {
   now_s=`date +%s`
 }
 
+function logging() {
+  local msg=$1
+  getNow
+  echo -e ${msg}
+  echo -e "${now}: ${msg}" >> ${SYS_LOG_FILE}
+}
+
 # 判断程序是否执行成功
 function checkSuccess() {
 if [ $? -eq 0 ]
 then
     local outputMsg=$1
-    getNow
-    echo -e "${now}: ${outputMsg}: 成功" >> ${SYS_LOG_FILE}
-    echo -e "${now}: ${outputMsg}: 成功"
+    logging "${outputMsg}: 成功"
 else
     local outputMsg=$1
-    getNow
-    echo -e "${now}: ${outputMsg}: 失败\n" >> ${SYS_LOG_FILE}
-    echo -e "${now}: ${outputMsg}: 失败"
+    logging "${outputMsg}: 失败"
     exit 1
 fi
 }
@@ -93,10 +96,8 @@ function installAnaconda() {
 
   local installPackage=$1
 
-  echo -e "安装log信息: ${SYS_LOG_FILE}"
-  echo -e "安装log信息: ${SYS_LOG_FILE}" >> ${SYS_LOG_FILE}
-
-  echo -e "安装开始..." >> ${SYS_LOG_FILE}
+  logging "安装log信息: ${SYS_LOG_FILE}"
+  logging "安装开始..."
 
   # 安装anaconda
   # 注意, 如果安装的时候prefix不是为/home/用户名/anaconda3，则安装路径错误，需手动书写
@@ -140,20 +141,17 @@ function checkAInstallAnaconda() {
   arch=`uname -m`
 
   if [ ${arch} == "x86_64" ]; then
-      echo -e "系统为 64-bit (x86_64) 架构, 采用安装包: ${X86_CONDA_PACKAGE}"
-      echo -e "系统为 64-bit (x86_64) 架构, 采用安装包: ${X86_CONDA_PACKAGE}" >> ${SYS_LOG_FILE}
+      logging "系统为 64-bit (x86_64) 架构, 采用安装包: ${X86_CONDA_PACKAGE}"
       # 在这里执行针对x86_64架构的安装流程
       # 可以安装相应的Anaconda安装包
       installAnaconda ${X86_CONDA_PACKAGE}
   elif [ ${arch} == "aarch64" ]; then
-      echo -e "系统为 ARM64 架构, 采用安装包: ${ARM64_CONDA_PACKAGE}" >> ${SYS_LOG_FILE}
-      echo -e "系统为 ARM64 架构, 采用安装包: ${ARM64_CONDA_PACKAGE}"
+      logging "系统为 ARM64 架构, 采用安装包: ${ARM64_CONDA_PACKAGE}"
       # 在这里执行针对ARM64架构的安装流程
       # 可以安装相应的Anaconda安装包
       installAnaconda ${ARM64_CONDA_PACKAGE}
   else
-      echo -e "无法支持的其他架构: ${arch}"
-      echo -e "无法支持的其他架构: ${arch}" >> ${SYS_LOG_FILE}
+      logging "无法支持的其他架构: ${arch}"
       # 如果是其他架构，可以给出相应的提示或处理方式
       exit 1
   fi
@@ -172,7 +170,7 @@ function uninstallAnaconda() {
   sudo rm -rf ~/opt/anaconda3
   checkSuccess "删除anaconda基本配置2"
   getCostTime
-  echo -e "Anaconda卸载完成，现在您可以退出界面"
+  logging "Anaconda卸载完成，现在您可以退出界面"
   rm -f ${SYS_LOG_FILE}
 }
 
